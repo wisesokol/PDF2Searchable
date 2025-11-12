@@ -27,7 +27,7 @@ PDF2Searchable uses OCR (Optical Character Recognition) technology based on Padd
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.13.5+ or higher
 - Windows (tested on Windows 10/11)
 - Minimum 4 GB RAM
 - AMD processor (runs very slowly on Intel processors)
@@ -37,12 +37,14 @@ PDF2Searchable uses OCR (Optical Character Recognition) technology based on Padd
 
 ### Automatic Installation
 
+Install python (exist in Install folder)
 1. Run `Start.bat` - the program will automatically check and install required dependencies
+(you can choose (1) local installation from install\LocalPackages)
 2. On first launch, all required packages will be installed
 
 ### Manual Installation
 
-1. Install Python 3.8+ from [python.org](https://www.python.org/)
+1. Install Python 3.13.5+ from [python.org](https://www.python.org/)
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
@@ -144,7 +146,7 @@ For a complete list of dependencies and their licenses, see [THIRD_PARTY_LICENSE
 ## Author
 
 Aleksei Sokolov
-
+wisesokol@icloud.com
 ## Version
 
 v3.0
@@ -171,7 +173,7 @@ PDF2Searchable использует технологию OCR (Optical Character 
 
 ## Требования
 
-- Python 3.8 или выше
+- Python 3.13.5 или выше
 - Windows (тестировалось на Windows 10/11)
 - Минимум 4 ГБ оперативной памяти
 - Процессор AMD (на процессорах Intel работает очень медленно)
@@ -180,13 +182,14 @@ PDF2Searchable использует технологию OCR (Optical Character 
 ## Установка
 
 ### Автоматическая установка
-
+Установите Python (Доступен в папке Install)
 1. Запустите `Start.bat` - программа автоматически проверит и установит необходимые зависимости
+(Вы можете выбрать опцию 1, она установит уже скачанные пакеты из папки Install\LocalPackages)
 2. При первом запуске будут установлены все требуемые пакеты
 
 ### Ручная установка
 
-1. Установите Python 3.8+ с официального сайта [python.org](https://www.python.org/)
+1. Установите Python 3.13.5+ с официального сайта [python.org](https://www.python.org/)
 2. Установите зависимости:
    ```bash
    pip install -r requirements.txt
@@ -288,6 +291,7 @@ PDF2Searchable/
 ## Автор
 
 Aleksei Sokolov
+wisesokol@icloud.com
 
 ## Версия
 
