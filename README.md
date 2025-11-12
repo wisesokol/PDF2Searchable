@@ -76,8 +76,8 @@ Install python (exist in Install folder)
 The program supports processing multiple files simultaneously. Select multiple files through the interface for batch processing.
 
 5. For PDF file preparation, use two utilities:
-   1. PDF_Splitter (split/merge large PDF files)
-   2. PDF Compressor (Compress ready searchable PDFs)
+   - **PDF_Splitter**: (split/merge large PDF files)
+   - **PDF Compressor**: (Compress ready searchable PDFs)
 
 ## Project Structure
 
@@ -221,8 +221,8 @@ PDF2Searchable использует технологию OCR (Optical Character 
 Программа поддерживает обработку нескольких файлов одновременно. Выберите несколько файлов через интерфейс для пакетной обработки.
 
 5. Для подготовки файлов PDF используйте две утилиты:
-    1. PDF_Splitter (разбивка/слияние больших файлов PDF)
-    2. PDF Compressor (Сжатие готовых serachable PDF)
+    - **PDF_Splitter**: (разбивка/слияние больших файлов PDF)
+    - **PDF Compressor**: (Сжатие готовых serachable PDF)
 
 ## Структура проекта
 
