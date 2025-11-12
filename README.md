@@ -1,9 +1,10 @@
 # PDF2Searchable
 
+
 [English](#english) | [Русский](#русский)
 
 ---
-
+![GUI interface](Img/01.png)
 <a name="english"></a>
 # PDF2Searchable (English)
 
@@ -21,6 +22,8 @@ PDF2Searchable uses OCR (Optical Character Recognition) technology based on Padd
 - Batch processing of multiple files
 - Configurable recognition parameters (font size, text offset)
 - Support for various page orientations
+
+![Result - searchable PDF with Hide or visible recognized text](Img/02.png)
 
 ## Requirements
 
