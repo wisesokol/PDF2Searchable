@@ -179,6 +179,14 @@ def process_pdf(input_path: str,
                         log_message(f"  Auto-applying flip operations for 180° rotated page")
                     elif rotation_angle == 270:
                         log_message(f"  Auto-applying flip operations for 270° rotated page")
+        
+        # 🔧 Получаем фактическую ориентацию страницы из PDF
+        try:
+            actual_page_rotation = int(getattr(page, 'rotation', 0))
+        except Exception:
+            actual_page_rotation = 0
+        log_message(f"  Actual page rotation in PDF: {actual_page_rotation} degrees")
+        
         log_message(f"  OCR blocks: {len(ocr_results)}")
 
         if dump_debug_first_page and i == 0:
@@ -247,35 +255,107 @@ def process_pdf(input_path: str,
 
             # Настройки позиционирования для разных углов поворота
             # 90 уже настроен корректно у вас — сохраняем его поведение
+            # Дополнительная надбавка к top_shift_px для vector_based (по умолчанию 0)
+            top_shift_extra = 0
+            # Глобальный сдвиг всего текстового слоя по вертикали (вниз = +)
+            text_layer_offset_y = 0
+            # Фактический поворот страницы PDF (0, 90, 180, 270)
+            try:
+                actual_page_rotation = int(getattr(page, 'rotation', 0))
+            except Exception:
+                actual_page_rotation = 0
             if rotation_angle == 90:
-                page_scale = 1.22
-                image_offset_x = -22
-                image_offset_y = -275
-                rotate_param = rotation_angle  # сохраняем прежний поворот
+                if actual_page_rotation == 270:
+                    # Дополнительный блок трансформаций для фактического угла 270 (значения продублированы)
+                    page_scale = 1.22
+                    image_offset_x = -22
+                    image_offset_y = -275
+                    rotate_param = rotation_angle
+                    #top_shift_extra = 12
+                    #text_layer_offset_y = 0
+                elif actual_page_rotation == 0:
+                    # === Настройка 90-0 (rotation_angle=90, actual_page_rotation=0) ===
+                    page_scale = 1
+                    image_offset_x = 0
+                    image_offset_y = 0
+                    rotate_param = 0
+                    top_shift_extra = 0
+                    text_layer_offset_y = int(page.rect.height * -0.65)
+                else:
+                    page_scale = 1
+                    image_offset_x = 0
+                    image_offset_y = 0
+                    rotate_param = 0  # сохраняем прежний поворот
+                    top_shift_extra = 12  # при необходимости настройте
             elif rotation_angle == 0: # Настроен для 0, проверен
-                # блок для 0°
-                page_scale = 1
-                image_offset_x = 0
-                image_offset_y = 0
-                rotate_param = 0
+                if actual_page_rotation == 270:
+                    # Дополнительный блок трансформаций для фактического угла 270 (значения продублированы)
+                    page_scale = 1.22
+                    image_offset_x = -22
+                    image_offset_y = -275
+                    rotate_param = 90
+                    # top_shift_extra = 0
+                    #text_layer_offset_y = 0
+                else:
+                    # блок для 0°
+                    page_scale = 1
+                    image_offset_x = 0
+                    image_offset_y = 0
+                    rotate_param = 0
+                    # top_shift_extra = 0
             elif rotation_angle == 180:
-                # блок для 180°
-                page_scale = 1
-                image_offset_x = 0
-                image_offset_y = 0
-                rotate_param = 0
+                if actual_page_rotation == 270:
+                    # Дополнительный блок трансформаций для фактического угла 270 (значения продублированы)
+                    page_scale = 1.22
+                    image_offset_x = -22
+                    image_offset_y = -275
+                    rotate_param = 90
+                    # top_shift_extra = 0
+                    # text_layer_offset_y = 0
+                else:
+                    # блок для 180°
+                    page_scale = 1
+                    image_offset_x = 0
+                    image_offset_y = 0
+                    rotate_param = 0
+                    # top_shift_extra = 0
             elif rotation_angle == 270: # Настроен для 270, проверен
-                # блок для 270°
-                page_scale = 1.22
-                image_offset_x = -22
-                image_offset_y = -275
-                rotate_param = (-rotation_angle)
+                if actual_page_rotation == 270:
+                    # Дополнительный блок трансформаций для фактического угла 270 (значения продублированы)
+                    page_scale = 1.22
+                    image_offset_x = -22
+                    image_offset_y = -275
+                    rotate_param = (-rotation_angle)
+                    #top_shift_extra = -10
+                    #text_layer_offset_y = int(page.rect.height * 0.05)
+                elif actual_page_rotation == 0:
+                    # === Настройка 270-0 (rotation_angle=270, actual_page_rotation=0) ===
+                    page_scale = 1
+                    image_offset_x = 0
+                    image_offset_y = 0
+                    rotate_param = 0
+                    top_shift_extra = 0
+                    text_layer_offset_y = int(page.rect.height * 0.70)
+                else:
+                    # блок для 270°
+                    page_scale = 1
+                    image_offset_x = 0
+                    image_offset_y = 0
+                    rotate_param = 0
+                    top_shift_extra = 0
+                    # При необходимости можно сместить весь текстовый слой вниз:
+                    # text_layer_offset_y > 0 смещает вниз; оставлено 0, чтобы не менять текущее поведение
+                    text_layer_offset_y = int(page.rect.height * 0.06)
             else:
                 # дефолтные параметры для других углов
                 page_scale = 1.22
                 image_offset_x = -22
                 image_offset_y = -275
                 rotate_param = (rotation_angle)
+                # top_shift_extra = 0
+
+            # Эффективное смещение: базовое из параметров + надбавка из текущего блока
+            effective_top_shift_px = top_shift_px + top_shift_extra
 
             scaled_w = full_w * page_scale
             scaled_h = full_h * page_scale
@@ -375,8 +455,8 @@ def process_pdf(input_path: str,
                             # 🔧 Применяем top_shift_px только для блоков выше середины листа
                             page_middle = page.rect.height / 2
                             if min(py1, py2) < page_middle:
-                                py1 -= top_shift_px
-                                py2 -= top_shift_px
+                                py1 -= effective_top_shift_px
+                                py2 -= effective_top_shift_px
                         elif rotation_angle == 270:
                             # Для страниц с поворотом 270° НЕ применяем flip операции
                             px1 = xmin * scale_x
@@ -392,8 +472,8 @@ def process_pdf(input_path: str,
                             # 🔧 Применяем top_shift_px только для блоков выше середины листа
                             page_middle = page.rect.height / 2
                             if min(py1, py2) < page_middle:
-                                py1 -= top_shift_px
-                                py2 -= top_shift_px
+                                py1 -= effective_top_shift_px
+                                py2 -= effective_top_shift_px
                         elif rotation_angle == 180:
                             # Для страниц с поворотом 180° принудительно применяем flip операции
                             px1 = page.rect.width - (xmin * scale_x)
@@ -405,7 +485,7 @@ def process_pdf(input_path: str,
                             page_middle = page.rect.height / 2
                             if min(py1, py2) < page_middle:
                                 # Для листов с rotation 180° добавляем поправку +13 к top_shift_px
-                                adjusted_shift = top_shift_px + 23
+                                adjusted_shift = effective_top_shift_px + 23
                                 py1 -= adjusted_shift
                                 py2 -= adjusted_shift
                         else:
@@ -426,9 +506,13 @@ def process_pdf(input_path: str,
                         # 🔧 Применяем top_shift_px только для блоков выше середины листа
                         page_middle = page.rect.height / 2
                         if min(py1, py2) < page_middle:
-                            py1 -= top_shift_px
-                            py2 -= top_shift_px
+                            py1 -= effective_top_shift_px
+                            py2 -= effective_top_shift_px
                         
+                        # Применяем глобальное смещение текстового слоя по вертикали
+                        py1 += text_layer_offset_y
+                        py2 += text_layer_offset_y
+
                         left = min(px1, px2)
                         right = max(px1, px2)
                         top = min(py1, py2)
@@ -501,8 +585,8 @@ def process_pdf(input_path: str,
                             # 🔧 Применяем top_shift_px только для блоков выше середины листа
                             page_middle = page.rect.height / 2
                             if min(py1, py2) < page_middle:
-                                py1 -= top_shift_px
-                                py2 -= top_shift_px
+                                py1 -= effective_top_shift_px
+                                py2 -= effective_top_shift_px
                             
                             # 🔧 Дополнительное смещение текста вниз для вертикальных страниц
                             y_offset = page.rect.height * 0.2  # Смещение на 20% высоты вниз
@@ -523,8 +607,8 @@ def process_pdf(input_path: str,
                             # 🔧 Применяем top_shift_px только для блоков выше середины листа
                             page_middle = page.rect.height / 2
                             if min(py1, py2) < page_middle:
-                                py1 -= top_shift_px
-                                py2 -= top_shift_px
+                                py1 -= effective_top_shift_px
+                                py2 -= effective_top_shift_px
                         elif rotation_angle == 180:
                             # Для страниц с поворотом 180° принудительно применяем flip операции
                             px1 = page.rect.width - (xmin * scale_x)
@@ -536,7 +620,7 @@ def process_pdf(input_path: str,
                             page_middle = page.rect.height / 2
                             if min(py1, py2) < page_middle:
                                 # Для листов с rotation 180° добавляем поправку +13 к top_shift_px
-                                adjusted_shift = top_shift_px + 23
+                                adjusted_shift = effective_top_shift_px + 23
                                 py1 -= adjusted_shift
                                 py2 -= adjusted_shift
                         else:
@@ -557,9 +641,13 @@ def process_pdf(input_path: str,
                         # 🔧 Применяем top_shift_px только для блоков выше середины листа
                         page_middle = page.rect.height / 2
                         if min(py1, py2) < page_middle:
-                            py1 -= top_shift_px
-                            py2 -= top_shift_px
+                            py1 -= effective_top_shift_px
+                            py2 -= effective_top_shift_px
                         
+                        # Применяем глобальное смещение текстового слоя по вертикали
+                        py1 += text_layer_offset_y
+                        py2 += text_layer_offset_y
+
                         left = min(px1, px2)
                         right = max(px1, px2)
                         top = min(py1, py2)
@@ -699,23 +787,37 @@ def process_pdf(input_path: str,
                             scale_x = page.rect.width / img.shape[1]
                             scale_y = page.rect.height / img.shape[0]
                             if rotation_angle == 90:
-                                px1 = page.rect.width - (xmin * scale_x)
-                                px2 = page.rect.width - (xmax * scale_x)
-                                py1 = page.rect.height - (ymin * scale_y)
-                                py2 = page.rect.height - (ymax * scale_y)
-                                y_offset = page.rect.height * -0.31
-                                py1 += y_offset
-                                py2 += y_offset
-                                page_middle = page.rect.height / 2
-                                if min(py1, py2) < page_middle:
-                                    py1 -= top_shift_px
-                                    py2 -= top_shift_px
+                                if actual_page_rotation == 270:
+                                    # Portrait scanned_image 90-270 (hide_text)
+                                    px1 = page.rect.width - (xmin * scale_x)
+                                    px2 = page.rect.width - (xmax * scale_x)
+                                    py1 = page.rect.height - (ymin * scale_y)
+                                    py2 = page.rect.height - (ymax * scale_y)
+                                    y_offset = page.rect.height * -0.24
+                                    py1 += y_offset
+                                    py2 += y_offset
+                                    page_middle = page.rect.height / 2
+                                    if min(py1, py2) < page_middle:
+                                        py1 -= top_shift_px
+                                        py2 -= top_shift_px
+                                else:
+                                    px1 = page.rect.width - (xmin * scale_x)
+                                    px2 = page.rect.width - (xmax * scale_x)
+                                    py1 = page.rect.height - (ymin * scale_y)
+                                    py2 = page.rect.height - (ymax * scale_y)
+                                    y_offset = page.rect.height * -0.31
+                                    py1 += y_offset
+                                    py2 += y_offset
+                                    page_middle = page.rect.height / 2
+                                    if min(py1, py2) < page_middle:
+                                        py1 -= top_shift_px
+                                        py2 -= top_shift_px
                             elif rotation_angle == 270:
                                 px1 = xmin * scale_x
                                 px2 = xmax * scale_x
                                 py1 = ymin * scale_y
                                 py2 = ymax * scale_y
-                                y_offset_page = page.rect.height * 0.28
+                                y_offset_page = page.rect.height * 0.22
                                 py1 += y_offset_page
                                 py2 += y_offset_page
                                 page_middle = page.rect.height / 2
@@ -873,15 +975,26 @@ def process_pdf(input_path: str,
                             xmin, xmax = min(xs), max(xs)
                             ymin, ymax = min(ys), max(ys)
                             if rotation_angle == 90:
-                                orig_width, orig_height = img.shape[1], img.shape[0]
-                                new_xmin = ymin
-                                new_xmax = ymax
-                                new_ymin = orig_width - xmax
-                                new_ymax = orig_width - xmin
-                                xmin, xmax, ymin, ymax = new_xmin, new_xmax, new_ymin, new_ymax
-                                y_offset = orig_height * 0.3
-                                ymin += y_offset
-                                ymax += y_offset
+                                if actual_page_rotation == 270:
+                                    orig_width, orig_height = img.shape[1], img.shape[0]
+                                    new_xmin = ymin
+                                    new_xmax = ymax
+                                    new_ymin = orig_width - xmax
+                                    new_ymax = orig_width - xmin
+                                    xmin, xmax, ymin, ymax = new_xmin, new_xmax, new_ymin, new_ymax
+                                    y_offset = orig_height * 0.23
+                                    ymin += y_offset
+                                    ymax += y_offset
+                                else:
+                                    orig_width, orig_height = img.shape[1], img.shape[0]
+                                    new_xmin = ymin
+                                    new_xmax = ymax
+                                    new_ymin = orig_width - xmax
+                                    new_ymax = orig_width - xmin
+                                    xmin, xmax, ymin, ymax = new_xmin, new_xmax, new_ymin, new_ymax
+                                    y_offset = orig_height * 0.3
+                                    ymin += y_offset
+                                    ymax += y_offset
                             elif rotation_angle == 270:
                                 orig_width, orig_height = img.shape[1], img.shape[0]
                                 new_xmin = ymin
@@ -911,7 +1024,7 @@ def process_pdf(input_path: str,
                                 px2 = xmax * scale_x
                                 py1 = ymin * scale_y
                                 py2 = ymax * scale_y
-                                y_offset_page = page.rect.height * 0.28
+                                y_offset_page = page.rect.height * 0.22
                                 py1 += y_offset_page
                                 py2 += y_offset_page
                                 page_middle = page.rect.height / 2

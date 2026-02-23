@@ -190,7 +190,11 @@ class ModernApp:
         
         self.clear_btn = ttk.Button(action_frame, text="🗑️ Clear Log", 
                                   command=self.clear_log, style='Modern.TButton')
-        self.clear_btn.pack(side=tk.LEFT)
+        self.clear_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.save_log_btn = ttk.Button(action_frame, text="💾 Save Log", 
+                                      command=self.save_log, style='Modern.TButton')
+        self.save_log_btn.pack(side=tk.LEFT)
         
     def create_log_section(self, parent):
         """Create log section"""
@@ -288,6 +292,32 @@ class ModernApp:
     def clear_log(self):
         """Clear log"""
         self.log.delete(1.0, tk.END)
+    
+    def save_log(self):
+        """Save log to file"""
+        try:
+            # Get log content
+            log_content = self.log.get(1.0, tk.END)
+            
+            # Check if log is empty
+            if not log_content.strip():
+                messagebox.showwarning("Warning", "Log is empty. Nothing to save.")
+                return
+            
+            # Ask user for file location
+            file_path = filedialog.asksaveasfilename(
+                title="Save Log As",
+                defaultextension='.txt',
+                filetypes=[('Text files', '*.txt'), ('All files', '*.*')]
+            )
+            
+            if file_path:
+                # Write log to file
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(log_content)
+                messagebox.showinfo("Success", f"Log saved successfully to:\n{file_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save log:\n{str(e)}")
     
     def update_output_filename(self):
         """Update output filename based on options"""
