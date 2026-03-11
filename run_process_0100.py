@@ -714,7 +714,7 @@ def process_pdf(input_path: str,
                                     px2 = page.rect.width - (xmax * scale_x)
                                     py1 = page.rect.height - (ymin * scale_y)
                                     py2 = page.rect.height - (ymax * scale_y)
-                                    y_offset = page.rect.height * 0.43
+                                    y_offset = page.rect.height * 0.52
                                     py1 += y_offset
                                     py2 += y_offset
                                     page_middle = page.rect.height / 2
@@ -912,7 +912,7 @@ def process_pdf(input_path: str,
                                     new_ymin = orig_width - xmax
                                     new_ymax = orig_width - xmin
                                     xmin, xmax, ymin, ymax = new_xmin, new_xmax, new_ymin, new_ymax
-                                    y_offset = orig_height * 0.3
+                                    y_offset = orig_height * 0.2
                                     ymin += y_offset
                                     ymax += y_offset
                             elif rotation_angle == 270:
