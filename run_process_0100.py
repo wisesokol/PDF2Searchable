@@ -696,17 +696,31 @@ def process_pdf(input_path: str,
                             scale_x = page.rect.width / img.shape[1]
                             scale_y = page.rect.height / img.shape[0]
                             if rotation_angle == 90:
-                                px1 = page.rect.width - (xmin * scale_x)
-                                px2 = page.rect.width - (xmax * scale_x)
-                                py1 = page.rect.height - (ymin * scale_y)
-                                py2 = page.rect.height - (ymax * scale_y)
-                                y_offset = page.rect.height * 0.43
-                                py1 += y_offset
-                                py2 += y_offset
-                                page_middle = page.rect.height / 2
-                                if min(py1, py2) < page_middle:
-                                    py1 -= top_shift_px
-                                    py2 -= top_shift_px
+                                if actual_page_rotation == 90:
+                                    # Landscape hide_text 90-90
+                                    px1 = page.rect.width - (xmin * scale_x)
+                                    px2 = page.rect.width - (xmax * scale_x)
+                                    py1 = page.rect.height - (ymin * scale_y)
+                                    py2 = page.rect.height - (ymax * scale_y)
+                                    y_offset = page.rect.height * 0.52
+                                    py1 += y_offset
+                                    py2 += y_offset
+                                    page_middle = page.rect.height / 2
+                                    if min(py1, py2) < page_middle:
+                                        py1 -= top_shift_px
+                                        py2 -= top_shift_px
+                                else:
+                                    px1 = page.rect.width - (xmin * scale_x)
+                                    px2 = page.rect.width - (xmax * scale_x)
+                                    py1 = page.rect.height - (ymin * scale_y)
+                                    py2 = page.rect.height - (ymax * scale_y)
+                                    y_offset = page.rect.height * 0.43
+                                    py1 += y_offset
+                                    py2 += y_offset
+                                    page_middle = page.rect.height / 2
+                                    if min(py1, py2) < page_middle:
+                                        py1 -= top_shift_px
+                                        py2 -= top_shift_px
                             elif rotation_angle == 270:
                                 px1 = xmin * scale_x
                                 px2 = xmax * scale_x
@@ -880,15 +894,27 @@ def process_pdf(input_path: str,
                             ymin, ymax = min(ys), max(ys)
                             # 🔧 Коррекция координат с учетом поворота изображения
                             if rotation_angle == 90:
-                                orig_width, orig_height = img.shape[1], img.shape[0]
-                                new_xmin = ymin
-                                new_xmax = ymax
-                                new_ymin = orig_width - xmax
-                                new_ymax = orig_width - xmin
-                                xmin, xmax, ymin, ymax = new_xmin, new_xmax, new_ymin, new_ymax
-                                y_offset = orig_height * 0.3
-                                ymin += y_offset
-                                ymax += y_offset
+                                if actual_page_rotation == 90:
+                                    # Landscape visible 90-90 (OCR coords)
+                                    orig_width, orig_height = img.shape[1], img.shape[0]
+                                    new_xmin = ymin
+                                    new_xmax = ymax
+                                    new_ymin = orig_width - xmax
+                                    new_ymax = orig_width - xmin
+                                    xmin, xmax, ymin, ymax = new_xmin, new_xmax, new_ymin, new_ymax
+                                    y_offset = orig_height * 0.20
+                                    ymin += y_offset
+                                    ymax += y_offset
+                                else:
+                                    orig_width, orig_height = img.shape[1], img.shape[0]
+                                    new_xmin = ymin
+                                    new_xmax = ymax
+                                    new_ymin = orig_width - xmax
+                                    new_ymax = orig_width - xmin
+                                    xmin, xmax, ymin, ymax = new_xmin, new_xmax, new_ymin, new_ymax
+                                    y_offset = orig_height * 0.3
+                                    ymin += y_offset
+                                    ymax += y_offset
                             elif rotation_angle == 270:
                                 orig_width, orig_height = img.shape[1], img.shape[0]
                                 new_xmin = ymin
